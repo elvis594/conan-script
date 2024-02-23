@@ -38,12 +38,23 @@ def detect_conan_profile():
         print("Failed to detect and set Conan profile.")
         print(e)
 
+def check_conan_remote_exists(remote_name):
+    try:
+        result = subprocess.run(["conan", "remote", "list"], capture_output=True, text=True, check=True)
+        return remote_name in result.stdout
+    except subprocess.CalledProcessError as e:
+        print(f"Error checking Conan remotes: {e}")
+        return False
+
 # set up environment
 def set_conan_environment():
-    # 示例：添加Conan远程仓库
-    subprocess.run(["conan", "remote", "add", REMOTE_REPO_NAME, REMOTE_REPO], check=True)
-    print("Added Conan remote repository.")
-
+    # 检查远程仓库是否存在
+    if not check_conan_remote_exists(REMOTE_REPO_NAME):
+        # 远程仓库不存在，添加它
+        subprocess.run(["conan", "remote", "add", REMOTE_REPO_NAME, REMOTE_REPO], check=True)
+    else:
+        # 远程仓库已存在，选择更新它或者跳过
+        print(f"Remote '{REMOTE_REPO_NAME}' already exists. Skipping addition.")
 
 
 if __name__ == "__main__":
